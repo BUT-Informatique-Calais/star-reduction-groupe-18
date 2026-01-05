@@ -5,7 +5,7 @@ import numpy as np
 
 # Ouvrir et lire le fichier FITS
 # FITS = Flexible Image Transport System, format standard en astronomie
-fits_file = './examples/HorseHead.fits'
+fits_file = './examples/test_M31_linear.fits'
 hdul = fits.open(fits_file)  # hdul = HDU List (liste des unités de données)
 
 # Afficher les informations sur le fichier
@@ -57,24 +57,26 @@ else:
 # Définir un noyau pour l'érosion
 # Le noyau 3x3 détermine la forme et la taille de l'opération morphologique
 kernel = np.ones((3,3), np.uint8)  # Matrice 3x3 remplie de 1
-# Effectuer l'érosion
-# L'érosion réduit les zones blanches, supprime le bruit et les petits objets
-# iterations=1 signifie qu'on applique l'érosion une seule fois
-eroded_image = cv.erode(image, kernel, iterations=1)  # 1 itération = une passe
 
-# Sauvegarder l'image érodée
-# cv.imwrite sauvegarde directement en format image standard
-cv.imwrite('./results/eroded.png', eroded_image)
+# Effectuer l'érosion en gérant les images couleur et monochromes différemment
+if data.ndim == 3:  # Image couleur
+    # Pour les images couleur, appliquer l'érosion sur chaque canal séparément
+    # Cela préserve les couleurs originales
+    eroded_image = np.zeros_like(image, dtype='uint8')
+    for i in range(image.shape[2]):  # Pour chaque canal de couleur (R, G, B)
+        eroded_image[:, :, i] = cv.erode(image[:, :, i], kernel, iterations=1)
+    
+    # Convertir en format [0, 1] pour matplotlib (comme l'image originale)
+    eroded_normalized = eroded_image.astype('float32') / 255.0
+    # Sauvegarder avec matplotlib pour préserver les couleurs
+    plt.imsave('./results/eroded.png', eroded_normalized)
+else:  # Image monochrome
+    # L'érosion réduit les zones blanches, supprime le bruit et les petits objets
+    # iterations=1 signifie qu'on applique l'érosion une seule fois
+    eroded_image = cv.erode(image, kernel, iterations=1)  # 1 itération = une passe
+    # Sauvegarder l'image érodée
+    cv.imwrite('./results/eroded.png', eroded_image)
 
 # Fermer le fichier FITS pour libérer la mémoire
 # Bonne pratique pour éviter les fuites mémoire avec les gros fichiers astronomiques
 hdul.close()
-
-
-
-# TEST DU CODE : 
-# Filename: ./examples/HorseHead.fits
-# No.    Name      Ver    Type      Cards   Dimensions   Format
-# 0  PRIMARY       1 PrimaryHDU     161   (891, 893)   int16   
-# 1  er.mask       1 TableHDU        25   1600R x 4C   [F6.2, F6.2, F6.2, F6.2]   
-
