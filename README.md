@@ -36,8 +36,13 @@ pip install [package-name]
 
 ### Command Line
 ```bash
-python main.py [arguments]
+python erosion.py
+python erosion_avec_interpolation.py 
+python coloring.py <rouge> <vert> <bleu>
+python comparaison
 ```
+
+à noter : les chemins des images fits sont à changer dans les fichiers correspondants.
 
 ## Requirements
 
